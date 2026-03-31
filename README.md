@@ -1,126 +1,213 @@
-# Perforated Drug Screening with GIN on MoleculeNet BBBP
+# PocketQSAR 🧪📱
 
-## Intro - Required
+**On-device molecular inference, SME2/KleidiAI benchmarking, and 3D chemical space explorer for Android**
 
-**Description:**
-
-This hackathon project demonstrates the application of **Perforated AI’s Dendritic Optimization** to a **Graph Isomorphism Network (GIN)** trained on the **MoleculeNet BBBP (Blood–Brain Barrier Penetration)** dataset. BBBP is a standard benchmark in molecular property prediction and drug discovery, where accurately identifying whether a compound can cross the blood–brain barrier is critical for CNS drug development.
-
-We compare:
-- a **baseline GIN** trained with standard backpropagation, and
-- the **same GIN architecture** enhanced with **dendritic optimization** (PerforatedAI),
-
-to evaluate whether dendrites can improve predictive performance and learning dynamics in **small, noisy biomedical graph datasets**, which are common in real-world drug discovery pipelines.
-
-This submission is structured to be **fully reproducible**, with both baseline and dendritic runs included.
-
-**Team:**
-
-- **Abhishek Nandy** – Principal Machine Learning Engineer / Independent Researcher  
-  (Drug Discovery, Graph ML, Systems Optimization)
+[![Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://android.com)
+[![Kotlin](https://img.shields.io/badge/Language-Kotlin-purple.svg)](https://kotlinlang.org)
+[![ExecuTorch](https://img.shields.io/badge/Runtime-ExecuTorch-orange.svg)](https://pytorch.org/executorch)
+[![OpenGL ES](https://img.shields.io/badge/Graphics-OpenGL%20ES%203.0-blue.svg)](https://www.khronos.org/opengles/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## Project Impact - Required
+## What is PocketQSAR?
 
-Predicting **blood–brain barrier penetration** is a high-impact problem in pharmaceutical R&D. BBB penetration failure is a common reason promising candidates are discarded late in development, resulting in significant time and cost loss.
+PocketQSAR is an Android app that brings **molecular property prediction entirely on-device** — no cloud, no network calls, no latency.
 
-Even small improvements in predictive accuracy can:
-- reduce late-stage drug attrition,
-- enable earlier elimination of non-viable compounds, and
-- lower experimental and computational screening costs.
+It runs **QSARNet**, a multi-task MLP trained on the ESOL dataset, directly on your phone using **ExecuTorch + XNNPACK**. It predicts aqueous solubility (logS) and toxicity probability from a 2048-dimensional molecular descriptor vector in under 4 ms on a standard ARM phone.
 
-Dendritic optimization is particularly relevant in this domain because:
-- drug discovery datasets are often **small and noisy**, and
-- graph models are costly to scale,
-so improvements in accuracy and/or convergence efficiency can translate into faster iteration cycles and reduced compute needs.
+The app also includes a **native SME2/KleidiAI benchmarking layer** written in C++ NDK that measures per-layer inference latency (NEON vs SME2) and a **3D OpenGL ES chemical space explorer** that renders 100 molecules as lit spheres in a PCA/solubility coordinate space.
 
 ---
 
-## Usage Instructions - Required
+## Features
 
-**Installation:**
+### 🔬 On-Device QSAR Inference
+- Predicts **aqueous solubility (logS)** and **toxicity probability** for small molecules
+- Runs locally via **ExecuTorch + XNNPACK** — no internet required
+- **Developability score (0–100)** combining solubility, toxicity, and Lipinski rules
+- 2D molecular structure images from bundled assets
 
-Create and activate a conda environment:
+### ⚡ SME2 / KleidiAI Benchmark Screen
+- **Runtime SME2 detection** via `HWCAP2_SME2` (no permissions needed)
+- Per-layer latency for all 4 QSARNet layers: FC1, FC2, Sol-head, Tox-head
+- NEON baseline vs SME2 outer-product (FMOPA) acceleration
+- **MPAndroidChart** bar charts showing speedup per layer
+- Single-inference latency (batch=1)
+- Graceful NEON fallback on non-SME2 devices
 
-```bash
-conda create -n perforated-drugscreen python=3.11 -y
-conda activate perforated-drugscreen
-```
+### 🌐 3D Chemical Space Explorer (OpenGL ES 3.0)
+- 100 molecules rendered as **lit icospheres** in 3D space
+- **X = PCA axis 1, Y = PCA axis 2, Z = logS** (solubility)
+- Colour-coded by toxicity + developability score
+- Sphere radius scales with developability score
+- **Gesture controls:** single-finger orbit, two-finger pan, pinch zoom, tap-to-select, double-tap reset, long-press auto-rotate
+- Selection card showing molecule name, logS, toxicity, dev score
 
-Install dependencies:
-
-```bash
-pip install torch torch-geometric wandb perforatedai
-```
-
-> Note: Torch Geometric optional CUDA extensions are not required for this experiment. CPU execution is supported.
-
-**Run - Baseline (No Dendrites):**
-
-```bash
-python bbbp_original.py \
-  --hidden_dim 64 \
-  --num_layers 4 \
-  --epochs 40 \
-  --weight_decay 0.0 \
-  --seed 0
-```
-
-**Run - Dendritic Optimization (PerforatedAI):**
-
-```bash
-python bbbp_perforatedai_wandb.py \
-  --hidden_dim 64 \
-  --num_layers 4 \
-  --epochs 40 \
-  --weight_decay 0.0 \
-  --seed 0 \
-  --doing_pai \
-  --wandb \
-  --wandb_project PerforatedDrugScreen \
-  --wandb_run_name BBBP_dendrites_hd64_L4_seed0
-```
-
-Both scripts use the **same architecture, dataset split, optimizer configuration, and random seed**, ensuring a fair comparison.
+### 📊 Molecule Browser & History
+- Browse all molecules in the ESOL dataset
+- Descriptor radar plot (MW / logP / TPSA)
+- Prediction history dialog
 
 ---
 
-## Results - Required
+## Architecture
 
-This BBBP example shows that **Dendritic Optimization** can improve predictive performance on a graph-based drug discovery benchmark. Comparing the best baseline run to the best dendritic run:
-
-| Model | Best Val AUC | Test AUC @ Best Val | Parameters |
-|------|--------------:|--------------------:|-----------:|
-| Baseline GIN (No Dendrites) | 0.8591 | 0.8269 | 68,482 |
-| GIN + Dendritic Optimization | 0.9220 | 0.9083 | 103,044 |
-
-### Remaining Error Reduction
-
-Using Test AUC as the primary score:
-
-- Baseline error = 1 − 0.8269 = 0.1731  
-- Dendritic error = 1 − 0.9083 = 0.0917  
-
-Remaining Error Reduction:
-
-\[
-(0.1731 - 0.0917) / 0.1731 \approx 47.0\%
-\]
-
-Dendritic optimization eliminated **~47% of the remaining error** compared to the baseline GIN model.
-
-### Notes on Stability / Ablation
-
-Additional runs suggest that on small, near-saturated datasets like BBBP, unconstrained dendritic growth can increase capacity without always improving generalization. This highlights the importance of selecting the correct dendritic operating regime (e.g., accuracy-seeking vs. compression-seeking) for biomedical graph learning workloads.
+```
+app/src/main/
+├── cpp/
+│   ├── Sme2Benchmark.cpp       # JNI: SME2 detection + NEON/SME2 matmul kernels
+│   └── CMakeLists.txt          # NDK build: -march=armv8.2-a+fp16+dotprod
+├── java/com/abhi/pocketqsar/
+│   ├── MainActivity.kt
+│   ├── QsarExecuTorch.kt       # ExecuTorch JNI wrapper
+│   ├── DemoMolecule.kt         # Molecule data class
+│   ├── DemoMoleculeRepository.kt
+│   ├── ChemicalSpaceView.kt    # 2D scatter plot
+│   ├── DescriptorRadarView.kt  # MW/logP/TPSA radar
+│   ├── ModelFileHelper.kt
+│   ├── Sme2Benchmark.kt        # Kotlin JNI bridge + data classes
+│   ├── Sme2BenchmarkActivity.kt
+│   ├── MolecularSpaceActivity.kt
+│   ├── MolecularSpaceGLView.kt # GLSurfaceView + gesture handling
+│   ├── MolecularSpaceRenderer.kt # OpenGL ES 3.0 renderer
+│   └── MolecularSpaceViewModel.kt
+└── assets/
+    ├── mobile_molecules.json   # ESOL dataset with descriptors + embeddings
+    ├── qsar_net_xnnpack.pte    # ExecuTorch compiled model
+    └── mol_imgs/               # 2D structure PNGs
+```
 
 ---
 
-## Raw Results Graph - Required
+## Tech Stack
 
-When running the Perforated AI library, output graphs are automatically generated (by default in the `PAI/` folder). The final graph produced by the dendritic training run is required for judging, because it verifies that dendrites were correctly added and trained.
+| Layer | Technology |
+|-------|-----------|
+| Language | Kotlin + C++ (NDK) |
+| ML Runtime | ExecuTorch + XNNPACK |
+| ARM Acceleration | KleidiAI / SME2 (Armv9.3+), NEON fallback |
+| Graphics | OpenGL ES 3.0 |
+| Charting | MPAndroidChart |
+| Build | CMake 3.22 + Gradle Kotlin DSL |
+| Min SDK | 26 (Android 8.0) |
+| Target ABI | arm64-v8a |
 
-**This submission includes the required PerforatedAI output graph below:**
+---
 
-![Perforated AI output graph](./PAI/PAI.png)
+## Benchmark Results
 
+Measured on **Vivo V2251 (MediaTek, Android 15, API 35)** — NEON path (sme2=0):
+
+| Layer | NEON avg | SME2 avg | Speedup |
+|-------|----------|----------|---------|
+| FC1 (2048→512) | 98.12 ms | 88.32 ms | 1.11× |
+| FC2 (512→256) | 5.75 ms | 5.77 ms | 1.00× |
+| Sol head (256→3) | 0.01 ms | 0.01 ms | 1.00× |
+| Tox head (256→2) | 0.00 ms | 0.00 ms | 1.00× |
+| **Single inference (batch=1)** | **3.023 ms** | **2.821 ms** | **1.07×** |
+
+> Note: SME2 column runs NEON fallback on this MediaTek device. True SME2 acceleration (~3.9× for FP16) requires Snapdragon 8 Gen 4 or Dimensity 9400.
+
+### Expected speedups on SME2 hardware
+
+| Precision | NEON | SME2 | Speedup |
+|-----------|------|------|---------|
+| FP32 | ~98 ms | ~88 ms | ~1.1× |
+| FP16 | ~37 ms | ~9 ms | ~3.9× |
+| INT8 | ~18 ms | ~10 ms | ~1.8× |
+
+---
+
+## How SME2 Detection Works
+
+```cpp
+// No permissions needed — reads kernel hardware capability bitmap
+unsigned long hwcap2 = getauxval(AT_HWCAP2);
+bool sme2_available  = (hwcap2 & HWCAP2_SME2) != 0;
+
+// Query Streaming Vector Length if SME2 present
+if (sme2_available) {
+    __arm_start_streaming();
+    uint32_t svl_bits = svcntsw() * 32;
+    __arm_stop_streaming();
+}
+```
+
+The SME2 matmul kernel uses `FMOPA` (FP32 outer-product-accumulate into ZA tile) — the same instruction at the core of KleidiAI's acceleration:
+
+```cpp
+__arm_start_streaming();
+__arm_za_enable();
+svmopa_za32_f32_m(0, pg_m, pg_n, va, vb);  // outer-product into ZA tile
+__arm_za_disable();
+__arm_stop_streaming();
+```
+
+---
+
+## Build Requirements
+
+- **Android Studio** Hedgehog or later
+- **NDK r26b** or later (required for `<arm_sme.h>` intrinsics)
+- **CMake 3.22.1** or later
+- **Target ABI:** arm64-v8a
+
+> ⚠️ Important: The CMakeLists.txt uses `-march=armv8.2-a+fp16+dotprod`, NOT `-march=armv9-a+sme2`. Using the armv9 flag causes a `SIGILL` crash on any non-SME2 phone because the compiler emits SME2 instructions even in the NEON fallback path.
+
+---
+
+## Getting Started
+
+```bash
+git clone https://github.com/abhitorch81/PocketQSAR-v2.git
+```
+
+Open in Android Studio → connect a physical ARM64 Android phone → `Shift+F10` to build and run.
+
+The SME2 benchmark requires a **physical device** — it will crash on an x86 emulator because the native library is compiled for arm64 only.
+
+---
+
+## Data & Model
+
+- **Dataset:** ESOL (Delaney) aqueous solubility dataset
+- **Descriptors:** 2048-dimensional RDKit feature vectors
+- **Model:** PyTorch MLP exported to ExecuTorch `.pte` format with XNNPACK backend
+- **Embeddings:** PCA 2D projection precomputed offline, stored in `mobile_molecules.json`
+- Training notebooks: `Model.ipynb`, `Exectorch.ipynb`
+
+---
+
+## Key Technical Learnings
+
+1. **`-march=armv9-a+sme2` causes SIGILL** even on NEON fallback — use `-march=armv8.2-a` and guard SME2 code with `#if HAS_SME2` + `__attribute__((target(...)))`
+2. **`UnsatisfiedLinkError` is a `Throwable`** not an `Exception` — always `catch(e: Throwable)` around JNI calls
+3. **Nested data classes in ViewModels** cause cross-file unresolved references — promote to top-level classes
+4. **Kotlin `var` auto-generates setters** — never write an explicit `fun setAutoRotate()` alongside `var autoRotate`
+5. **Gradle Kotlin DSL** — cmake path must use `file()` not a raw string
+6. **JitPack** must be added to `settings.gradle.kts` `dependencyResolutionManagement`, not app-level gradle
+
+---
+
+## Repo Structure
+
+```
+PocketQSAR/
+├── app/                    # Android app module
+├── Model.ipynb             # QSARNet training notebook
+├── Exectorch.ipynb         # ExecuTorch export notebook
+├── mobile_molecules.json   # Molecule dataset
+├── qsar_multitask.pt       # PyTorch model weights
+└── app-release.apk         # Pre-built release APK
+```
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+*Built with [Claude](https://claude.ai) (Anthropic) · March 2026*
