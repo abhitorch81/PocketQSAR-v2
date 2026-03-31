@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Run button -->
+        <Button
+            android:id="@+id/runDemoButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Run Demo Prediction" />
+
+        <!-- Prediction text -->
+        <TextView
+            android:id="@+id/resultText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Tap the button to run prediction."
+            android:textSize="16sp"
+            tools:text="Molecule: ESOL_0&#10;Predicted logS: -0.069&#10;Toxicity probability: 0.515 (toxic)" />
+
+        <!-- Developability score -->
+        <TextView
+            android:id="@+id/scoreText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Developability score:" />
+
+        <ProgressBar
+            android:id="@+id/scoreBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="@android:color/holo_green_light"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Molecule image -->
+        <ImageView
+            android:id="@+id/molImage"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Molecule structure"
+            tools:src="@drawable/ic_launcher_foreground" />
+
+        <!-- Chemical space / descriptor graph title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Molecular descriptors &amp; chemical space"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Chemical space scatter plot -->
+        <com.abhi.pocketqsar.ChemicalSpaceView
+            android:id="@+id/chemicalSpaceView"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Radar view for MW / logP / TPSA -->
+        <com.abhi.pocketqsar.DescriptorRadarView
+            android:id="@+id/radarView"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:layout_marginBottom="16dp"
+            tools:ignore="MissingPrefix" />
+
+        <!-- Descriptor bars -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- MW -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="MW" />
+
+                <ProgressBar
+                    android:id="@+id/barMw"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="8dp"
+                    android:layout_weight="1"
+                    android:max="800"
+                    android:progress="0" />
+
+                <TextView
+                    android:id="@+id/textMw"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="0" />
+            </LinearLayout>
+
+            <!-- logP -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="logP" />
+
+                <ProgressBar
+                    android:id="@+id/barLogp"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="8dp"
+                    android:layout_weight="1"
+                    android:max="8"
+                    android:progress="0" />
+
+                <TextView
+                    android:id="@+id/textLogp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="0" />
+            </LinearLayout>
+
+            <!-- TPSA -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="TPSA" />
+
+                <ProgressBar
+                    android:id="@+id/barTpsa"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="8dp"
+                    android:layout_weight="1"
+                    android:max="200"
+                    android:progress="0" />
+
+                <TextView
+                    android:id="@+id/textTpsa"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="0" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ======================================= -->
+        <!-- Actions: history / browse / benchmark   -->
+        <!-- ======================================= -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Explore and benchmark (ARM)"
+            android:textStyle="bold"
+            android:textSize="14sp" />
+
+        <!-- Three equally sized buttons in one row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="5"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/historyButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="History" />
+
+            <Button
+                android:id="@+id/listButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="Browse" />
+
+            <Button
+                android:id="@+id/benchmarkButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="Benchmark" />
+            <Button
+                android:id="@+id/btn3dSpace"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="3D Space" />
+
+            <Button
+                android:id="@+id/btnSme2Benchmark"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="SME2" />
+        </LinearLayout>
+
+        <!-- Benchmark mode toggle (Quick / Standard / Deep) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Benchmark mode:"
+                android:textSize="12sp" />
+
+            <RadioGroup
+                android:id="@+id/benchmarkModeGroup"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp">
+
+                <RadioButton
+                    android:id="@+id/benchmarkQuick"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Quick" />
+
+                <RadioButton
+                    android:id="@+id/benchmarkStandard"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Standard" />
+
+                <RadioButton
+                    android:id="@+id/benchmarkDeep"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Deep" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/benchmarkText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Benchmark not run yet."
+            android:textSize="12sp" />
+
+    </LinearLayout>
+</ScrollView>
